@@ -2,15 +2,18 @@
 
 readonly DEFAULT_HOST=localhost
 readonly DEFAULT_PORT=9092
+readonly KAFKA_CLUSTER_ID_FILE_PATH="./config/KAFKA_CLUSTER_ID.txt"
+readonly KAFKA_CLUSTER_ID=$(cat $KAFKA_CLUSTER_ID_FILE_PATH)
 
 create_cluster_id() {
-	KAFKA_CLUSTER_ID=$($KAFKA_HOME/bin/kafka-storage.sh "random-uuid")
-	export KAFKA_CLUSTER_ID=$KAFKA_CLUSTER_ID
-	echo "The new kafka cluster id is: " $KAFKA_CLUSTER_ID
+	LOCAL_KAFKA_CLUSTER_ID=$($KAFKA_HOME/bin/kafka-storage.sh "random-uuid")
+  echo $LOCAL_KAFKA_CLUSTER_ID > $KAFKA_CLUSTER_ID_FILE_PATH
+	echo "The new kafka cluster id is: " $LOCAL_KAFKA_CLUSTER_ID
 }
 
 format_log_directories() {
-	$KAFKA_HOME/bin/kafka-storage.sh "format" -t $KAFKA_CLUSTER_ID -c $KAFKA_HOME/config/kraft/server.properties
+  echo "PAX EN ROMA" $KAFKA_CLUSTER_ID
+	$KAFKA_HOME/bin/kafka-storage.sh format -t $KAFKA_CLUSTER_ID -c $KAFKA_HOME/config/kraft/server.properties
 }
 
 start_kafka_server() {
@@ -35,7 +38,17 @@ write_events() {
 create_consumer() {
     $KAFKA_HOME/bin/kafka-console-consumer.sh --topic $1 --from-beginning \
         --bootstrap-server $DEFAULT_HOST:$DEFAULT_PORT
+}
 
+generate_java_archetype() {
+  mvn archetype:generate \
+    -DarchetypeGroupId=org.apache.kafka \
+    -DarchetypeArtifactId=streams-quickstart-java \
+    -DarchetypeVersion=3.4.0 \
+    -DgroupId=streams.examples \
+    -DartifactId=streams.examples \
+    -Dversion=0.1 \
+    -Dpackage=myapps
 }
 
 case $1 in
@@ -59,6 +72,9 @@ case $1 in
         ;;
     "create_consumer")
         create_consumer $2
+        ;;
+    "generate_java_archetype")
+        generate_java_archetype
         ;;
     *)
         echo "kafka-commands.sh: Invalid Choice"

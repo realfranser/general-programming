@@ -1,9 +1,11 @@
+# Constants
 SHELL := /bin/bash
-KAFKA_SCRIPT = ./kafka-commands.sh
-TOPIC_NAME = test-topic
+KAFKA_SCRIPT := ./kafka-commands.sh
+TOPIC_NAME := test-topic
 
+# Commands
 create-cluster-id:
-	source $(KAFKA_SCRIPT) create_cluster_id
+	@bash $(KAFKA_SCRIPT) create_cluster_id
 
 format-log-directories:
 	@bash $(KAFKA_SCRIPT) format_log_directories
@@ -22,3 +24,8 @@ write-events:
 
 create-consumer:
 	@bash $(KAFKA_SCRIPT) create_consumer $(TOPIC_NAME)
+
+generate-java-archetype:
+	@bash $(KAFKA_SCRIPT) generate_java_archetype
+
+fresh-start-kafka-server: create-cluster-id format-log-directories start-kafka-server
