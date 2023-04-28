@@ -7,5 +7,5 @@ following:
 > make foo=bar target
 
 **Example**:
-> make TOPIC_NAME create_topic
+> make TOPIC_NAME=my-topic create_topic
 
