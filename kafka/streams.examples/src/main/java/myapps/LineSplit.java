@@ -16,16 +16,15 @@
  */
 package myapps;
 
-import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.kstream.ValueMapper;
 
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+
+import static utils.StreamService.getStreamProperties;
 
 /**
  * In this example, we implement a simple LineSplit program using the high-level Streams DSL
@@ -34,19 +33,18 @@ import java.util.concurrent.CountDownLatch;
  * each record represents a single word.
  */
 public class LineSplit {
+    private static final String STREAM_ID = "streams-linesplit";
+    private static final String SOURCE_TOPIC = "streams-plaintext-input";
+    private static final String TO_TOPIC = "streams-pipe-output";
 
     public static void main(String[] args) {
-        Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-linesplit");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        final Properties props = getStreamProperties(STREAM_ID);
 
         final StreamsBuilder builder = new StreamsBuilder();
 
-        builder.<String, String>stream("streams-plaintext-input")
+        builder.<String, String>stream(SOURCE_TOPIC)
             .flatMapValues(value -> Arrays.asList(value.split("\\W+")))
-            .to("streams-linesplit-output");
+            .to(TO_TOPIC);
 
         final Topology topology = builder.build();
         final KafkaStreams streams = new KafkaStreams(topology, props);

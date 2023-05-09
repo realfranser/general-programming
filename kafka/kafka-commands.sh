@@ -12,7 +12,6 @@ create_cluster_id() {
 }
 
 format_log_directories() {
-  echo "PAX EN ROMA" $KAFKA_CLUSTER_ID
 	$KAFKA_HOME/bin/kafka-storage.sh format -t $KAFKA_CLUSTER_ID -c $KAFKA_HOME/config/kraft/server.properties
 }
 
