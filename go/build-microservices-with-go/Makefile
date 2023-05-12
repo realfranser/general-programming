@@ -1,4 +1,5 @@
 # Constants
+SHELL := /bin/bash
 ## Postgres
 POSTGRES_USER := user
 POSTGRES_PASSWORD := password
@@ -38,5 +39,14 @@ migrate-tables-down:
 run-data-pipelines:
 	DATABASE_URL="postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/dbname?sslmode=disable" part5
 
+launch-app:
+	@bash ./scripts/launch.sh
+
 run:
 	go run .
+
+direnv-allow:
+	direnv allow .
+
+docker-kill:
+	docker kill memcache postgres_db

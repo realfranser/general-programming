@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"memcache/models"
+	"microservice_example/models"
 
 	"github.com/bradfitz/gomemcache/memcache"
 )
@@ -14,6 +14,8 @@ import (
 type Client struct {
 	client *memcache.Client
 }
+
+var memcacheClient *Client
 
 func NewMemcached() (*Client, error) {
 	// XXX Assuming environment variable contains only one server
@@ -26,27 +28,33 @@ func NewMemcached() (*Client, error) {
 	client.Timeout = 100 * time.Millisecond
 	client.MaxIdleConns = 100
 
-	return &Client{
+	memcacheClient = &Client{
 		client: client,
-	}, nil
+	}
+
+	return memcacheClient, nil
 }
 
-func (c *Client) SetName(n models.Name) error {
+func (c *Client) CloseMemcacheClient() {
+	c.client.Close()
+}
+
+func SetName(n models.Name) error {
 	var b bytes.Buffer
 
 	if err := gob.NewEncoder(&b).Encode(n); err != nil {
 		return err
 	}
 
-	return c.client.Set(&memcache.Item{
+	return memcacheClient.client.Set(&memcache.Item{
 		Key:        n.NConst,
 		Value:      b.Bytes(),
 		Expiration: int32(time.Now().Add(25 * time.Second).Unix()),
 	})
 }
 
-func (c *Client) GetName(nconst string) (models.Name, error) {
-	item, err := c.client.Get(nconst)
+func GetName(nconst string) (models.Name, error) {
+	item, err := memcacheClient.client.Get(nconst)
 	if err != nil {
 		return models.Name{}, err
 	}
@@ -62,14 +70,14 @@ func (c *Client) GetName(nconst string) (models.Name, error) {
 	return res, nil
 }
 
-func (c *Client) Setame(n models.Name) error {
+func Setame(n models.Name) error {
 	var b bytes.Buffer
 
 	if err := gob.NewEncoder(&b).Encode(n); err != nil {
 		return err
 	}
 
-	return c.client.Set(&memcache.Item{
+	return memcacheClient.client.Set(&memcache.Item{
 		Key:        n.NConst,
 		Value:      b.Bytes(),
 		Expiration: int32(time.Now().Add(25 * time.Second).Unix()),

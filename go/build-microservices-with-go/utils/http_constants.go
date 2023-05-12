@@ -1,0 +1,8 @@
+package utils
+
+const (
+	DELETE_METHOD_NAME = "DELETE"
+	GET_METHOD_NAME    = "GET"
+	POST_METHOD_NAME   = "POST"
+	PUT_METHOD_NAME    = "PUT"
+)

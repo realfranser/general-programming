@@ -1,6 +1,7 @@
+//go:build tools
 // +build tools
 
-package main
+package utils
 
 // Install using:
 //
