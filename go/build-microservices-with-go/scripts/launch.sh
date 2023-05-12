@@ -12,6 +12,7 @@ readonly POSTGRES_IMAGE="postgres:12.5-alpine"
 ## DB
 readonly DB_MIGRATIONS_PATH="db/migrations/"
 readonly DB_CONTAINER_NAME="postgres_db"
+readonly DB_MIGRATION_MAX_TRIES=10
 
 ## Memcache
 readonly MEMCACHE_PORT=11211
@@ -48,12 +49,14 @@ function launch_memcache_container() {
 
 function database_migrations() {
     ./scripts/custom_wait.sh -t 10 localhost:$POSTGRES_PORT -- echo "DB is up"
-    tries=10
+    tries=$DB_MIGRATION_MAX_TRIES
 
     while [ "$tries" -gt 0 ]; do
-        if [[ $(migrate -path $DB_MIGRATIONS_PATH -database $DATABASE_URL up) == 'no change' ]]
+        migration_status=$(migrate -path $DB_MIGRATIONS_PATH -database $DATABASE_URL up 2>&1)
+        if [[ $migration_status == 'no change' ]]
         then
-            echo "Tables migrated correctly"
+            migration_log=$([[ $tries -lt $DB_MIGRATION_MAX_TRIES ]] && echo "new migration created" || echo $migration_status )
+            echo "Tables migrated correctly with status: " $migration_log
             break
         else
             sleep 1
@@ -72,7 +75,18 @@ function populate_db() {
     part5
 }
 
+echo "Launching postgres container..."
 launch_postgres_container
+echo -e "\n"
+
+echo "Launching memcache container..."
 launch_memcache_container
+echo -e "\n"
+
+echo "Creating database migrations..."
 database_migrations
-# populate_db
+echo -e "\n"
+
+echo "Populating database..."
+populate_db
+echo -e "\n"
